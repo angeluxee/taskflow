@@ -1,5 +1,5 @@
 import React from "react";
-import { Note } from './Note';
+import { Note } from './Notee';
 
 export const NoteList = ({ notes, type, color, updateNotes }) => {
     const BACKEND = process.env.REACT_APP_API;

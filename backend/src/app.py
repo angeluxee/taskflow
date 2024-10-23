@@ -23,51 +23,12 @@ CORS(app)
 bcrypt = Bcrypt(app)
 
 # Utils
-default_board = {
-    '_id': ObjectId(),
-    'title': 'Get Started',
-    'lists': [
-        {
-            '_id': ObjectId(),
-            'title': 'To do',
-            'notes': [
-                {
-                    '_id': ObjectId(),
-                    'title': 'Welcome to To Do!',
-                    'description': 'Here you can add tasks to be done.',
-                }
-            ]
-        },
-        {
-            '_id': ObjectId(),
-            'title': 'Doing',
-            'notes': [
-                {
-                    '_id': ObjectId(),
-                    'title': 'Welcome to Doing!',
-                    'description': 'Here you can move tasks you are currently working on.',
-                }
-            ]
-        },
-        {
-            '_id': ObjectId(),
-            'title': 'Done',
-            'notes': [
-                {
-                    '_id': ObjectId(),
-                    'title': 'Welcome to Done!',
-                    'description': 'Here you can move completed tasks.',
-                }
-            ]
-        }
-    ]
-}
 
 @app.route('/')
 def index():
     return '<h1>Hello World</h1>'
 
-@app.route('/api/token/verify', methods=['POST'])
+@app.route('/api/token/verify', methods=['GET'])
 @jwt_required()
 def verify_token():
     current_user_id = get_jwt_identity()
@@ -95,7 +56,45 @@ def register_user():
             'email': email,
             'password': bcrypt.generate_password_hash(password),
             'boards': [
-                default_board
+                {
+                '_id': ObjectId(),
+                'title': 'Get Started',
+                'lists': [
+                    {
+                        '_id': ObjectId(),
+                        'title': 'To do',
+                        'notes': [
+                            {
+                                '_id': ObjectId(),
+                                'title': 'Welcome to To Do!',
+                                'description': 'Here you can add tasks to be done.',
+                            }
+                        ]
+                    },
+                    {
+                        '_id': ObjectId(),
+                        'title': 'Doing',
+                        'notes': [
+                            {
+                                '_id': ObjectId(),
+                                'title': 'Welcome to Doing!',
+                                'description': 'Here you can move tasks you are currently working on.',
+                            }
+                        ]
+                    },
+                    {
+                        '_id': ObjectId(),
+                        'title': 'Done',
+                        'notes': [
+                            {
+                                '_id': ObjectId(),
+                                'title': 'Welcome to Done!',
+                                'description': 'Here you can move completed tasks.',
+                            }
+                        ]
+                    }
+                ]
+            }
             ]
         }
 
@@ -118,9 +117,16 @@ def login_user():
 
     if user and bcrypt.check_password_hash(user['password'], password):
         access_token = create_access_token(identity=str(user['_id']))
-        return jsonify({"message": "Login successful", "access_token": access_token}), 200
+        return jsonify({
+            "message": "Login successful", 
+            "access_token": access_token, 
+            "user": {
+                "username": user['username'],  
+            }
+        }), 200 
     else:
         return jsonify({"error": "Invalid credentials"}), 401
+
 
 @app.route('/api/board', methods=['POST'])
 @jwt_required()
@@ -175,6 +181,15 @@ def create_board():
     else:
         return {"error": "Missing fields"}, 401
     
+@app.route('/api/board', methods=['GET'])
+@jwt_required()
+def get_boards():
+    current_user_id = get_jwt_identity()
+    user_info = db.users.find_one({'_id' : ObjectId(current_user_id)})
+    boards = json_util.dumps(user_info['boards'])
+    return Response(boards, mimetype='application/json')
+
+
 @app.route('/api/<board_id>/list', methods=['POST'])
 @jwt_required()
 def create_list(board_id):
@@ -211,16 +226,56 @@ def create_list(board_id):
     else:
         return {"error": "Missing fields"}, 401
 
+@app.route('/api/<board_id>/<list>', methods=['PUT'])
+@jwt_required()
+def edit_list(board_id):
+    current_user_id = get_jwt_identity()
+    title = request.json['title']
+    list = {
+        '_id' : ObjectId(),
+        'title' : title,
+        'notes' : [
+            {
+                '_id' : ObjectId(),
+                'title' : 'Title',
+                'description' : 'Description'
+            }
+        ]
+    }
+    if title and current_user_id and board_id: 
+        db.users.update_one(
+            {
+                '_id': ObjectId(current_user_id), 
+                'boards._id': ObjectId(board_id)
+            },
+            {
+                '$push': {
+                    'boards.$[board].lists': list
+                }
+            },
+            array_filters=[
+                {'board._id': ObjectId(board_id)},
+            ]
+            
+        )
+        return {"message": "List created successfully"}, 200
+    else:
+        return {"error": "Missing fields"}, 401
+
+
 @app.route('/api/<board_id>/<list_id>/note', methods=['POST'])
 @jwt_required()
 def create_note(board_id, list_id):
     current_user_id = get_jwt_identity()
-    # title = request.json['title']
+    title = request.json.get('title', 'Title')  
+    description = request.json.get('description', 'Description')  
+    
     note = {
-        '_id' : ObjectId(),
-        'title' : 'Title',
-        'description' : 'Description'
+        '_id': ObjectId(),
+        'title': title,
+        'description': description
     }
+
     if board_id and list_id and current_user_id:
         db.users.update_one(
             {
@@ -241,6 +296,79 @@ def create_note(board_id, list_id):
         return {"message": "Note created successfully"}, 200
     else:
         return {"error": "Missing fields"}, 401
+
+
+
+@app.route('/api/<board_id>/<list_id>/<note_id>', methods=['PUT'])
+@jwt_required()
+def edit_note(board_id, list_id, note_id):
+    current_user_id = get_jwt_identity()
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
+
+    if not (board_id and list_id and note_id and current_user_id and title and description):
+        return {"error": "Missing fields"}, 400
+
+    result = db.users.update_one(
+        {
+            '_id': ObjectId(current_user_id),
+            'boards._id': ObjectId(board_id),
+            'boards.lists._id': ObjectId(list_id),
+            'boards.lists.notes._id': ObjectId(note_id)
+        },
+        {
+            '$set': {
+                'boards.$[board].lists.$[list].notes.$[note].title': title,
+                'boards.$[board].lists.$[list].notes.$[note].description': description
+            }
+        },
+        array_filters=[
+            {'board._id': ObjectId(board_id)},
+            {'list._id': ObjectId(list_id)},
+            {'note._id': ObjectId(note_id)}
+        ]
+    )
+
+    if result.matched_count == 0:
+        return {"error": "Note not found"}, 404
+
+    return {"message": "Note updated successfully"}, 200
+
+@app.route('/api/<board_id>/<list_id>/<note_id>', methods=['DELETE'])
+@jwt_required()
+def delete_note(board_id, list_id, note_id):
+    current_user_id = get_jwt_identity()
+
+    if not (board_id and list_id and note_id and current_user_id):
+        return {"error": "Missing fields"}, 400
+
+    result = db.users.update_one(
+        {
+            '_id': ObjectId(current_user_id),
+            'boards._id': ObjectId(board_id),
+            'boards.lists._id': ObjectId(list_id)
+        },
+        {
+            '$pull': {
+                'boards.$[board].lists.$[list].notes': {'_id': ObjectId(note_id)}
+            }
+        },
+        array_filters=[
+            {'board._id': ObjectId(board_id)},
+            {'list._id': ObjectId(list_id)}
+        ]
+    )
+
+    if result.matched_count == 0:
+        return {"error": "Note not found"}, 404
+
+    return {"message": "Note deleted successfully"}, 200
+
+
+
+
+
 
 
 # Crear nota
@@ -286,7 +414,7 @@ def del_note(id):
         return {'Error': 'Note was not deleted'}
 
 @app.route('/note/<id>', methods=['PUT'])
-def edit_note(id):
+def edit_notee(id):
     title = request.json['title']
     description = request.json['description']
     type = request.json['type']

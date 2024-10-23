@@ -1,12 +1,11 @@
-import React, { useState, useContext} from "react";
+import React, { useState } from "react";
 import editIcon from '../assets/edit.png';
 import binIcon from '../assets/bin.png';
-import { BoardContext } from "../context/BoardContext";
-export const Note = ({ list_id, note, updateNotes }) => {
-    const {editNote, deleteNote, selectedBoard} = useContext(BoardContext);
+
+export const Note = ({ note, updateNotes }) => {
     const [edit, setEdit] = useState(false); 
-    const [title, setTitle] = useState(note.title); 
-    const [description, setDescription] = useState(note.description); 
+    const [title, setTitle] = useState(note['title']); 
+    const [description, setDescription] = useState(note['description']); 
     const BACKEND = process.env.REACT_APP_API;
     const [originalTitle, setOriginalTitle] = useState(note.title);
     const [originalDescription, setOriginalDescription] = useState(note.description);
@@ -17,9 +16,19 @@ export const Note = ({ list_id, note, updateNotes }) => {
             if(title === originalTitle && description === originalDescription){
                 console.log('Sin cambios')
             }else{
-                await editNote(selectedBoard._id.$oid, list_id, note._id.$oid, title, description);
-                setOriginalTitle(title) ;
-                setOriginalDescription(description);
+                const response = await fetch(`${BACKEND}/note/${note['_id']['$oid']}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        type: note['type']
+                    }),
+                });
+                setOriginalTitle(title) 
+                setOriginalDescription(description) 
             }
         } catch (error) {
             console.error("Error:", error);
@@ -31,9 +40,12 @@ export const Note = ({ list_id, note, updateNotes }) => {
     }
     const handleDelete = async (event) => {
         event.preventDefault(); 
-
+    
         try {
-            deleteNote(selectedBoard._id.$oid, list_id, note._id.$oid)            
+            const response = await fetch(`${BACKEND}/note/${note['_id']['$oid']}`, {
+                method: 'DELETE'
+            });
+            updateNotes(); 
         } catch (error) {
             console.error('Error:', error); 
         }
@@ -48,11 +60,9 @@ export const Note = ({ list_id, note, updateNotes }) => {
     }
     const handleDragStart = (event) => {
         const noteInfo = JSON.stringify({
-            id: note._id.$oid,
-            title: note.title,
-            description: note.description,
-            list_id: list_id,
-            board_id: selectedBoard._id.$oid
+            id: note['_id']['$oid'],
+            title: title,
+            description: description
         });
     
         event.dataTransfer.setData('noteInfo', noteInfo); 
@@ -63,7 +73,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
         return (
         <>
             <form 
-                className="border bg-white rounded-lg shadow-md mt-2 grid p-2 group relative " 
+                className="border rounded-lg shadow-md mt-2 grid p-2 group relative " 
                 onSubmit={handleSubmit} 
                 draggable 
                 onDragStart={handleDragStart}

@@ -1,11 +1,11 @@
 import { React } from "react";
-import { LoginForm } from "../components/LoginForm";
+import { RegisterForm } from "../components/RegisterForm";
 const BACKEND = process.env.REACT_APP_API;
 
-export const Login = () => {
+export const Register = () => {
     return (
         <div className="">
-            <LoginForm/>
+            <RegisterForm/>
         </div>
     )
 }
