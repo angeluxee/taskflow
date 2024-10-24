@@ -3,6 +3,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthProvider';
+import TaskFlowLogo from '../assets/taskflow.png';
 
 export function RegisterForm() {
   const [email, setEmail] = useState("");
@@ -33,7 +34,7 @@ export function RegisterForm() {
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             alt="TaskFlow"
-            src={''}
+            src={TaskFlowLogo}
             className="mx-auto h-24 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">

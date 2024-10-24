@@ -3,6 +3,7 @@ import { LabelUI, InputUI, ButtonUI } from "./ui";
 import { AuthContext } from "../context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from 'react-hot-toast';
+import TaskFlowLogo from '../assets/taskflow.png';
 
 export const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -28,7 +29,7 @@ export const LoginForm = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             alt="TaskFlow"
-            src={''}
+            src={TaskFlowLogo}
             className="mx-auto h-24 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">

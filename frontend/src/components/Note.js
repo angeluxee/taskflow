@@ -63,7 +63,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
         return (
         <>
             <form 
-                className="border bg-white rounded-lg shadow-md mt-2 grid p-2 group relative " 
+                className="border bg-white rounded-lg shadow-md mt-2 grid p-2 group relative" 
                 onSubmit={handleSubmit} 
                 draggable 
                 onDragStart={handleDragStart}
@@ -83,7 +83,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
                     onBlur={handleSubmit}
                 />
                 <p 
-                    className="outline-none rounded-lg p-2 w-full" 
+                    className="outline-none rounded-lg p-2 w-full max-h-max overflow-y-auto" 
                     style={{ 
                         whiteSpace: 'pre-wrap', 
                         overflowWrap: 'break-word',
@@ -104,7 +104,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
 
             {edit && (
                 <div className="fixed inset-0 bg-blue-100 bg-opacity-75 flex justify-center items-center z-50">
-                    <div className="p-6 rounded-lg shadow-lg w-2/4 bg-fuchsia-100">
+                    <div className="p-6 rounded-2xl shadow-lg w-2/4 bg-fuchsia-50">
                         <form onSubmit={secondHandleSubmit}>
                             <div className="flex">
                                 <h2 className="text-xl font-bold mb-4">Edit Note</h2>
@@ -124,7 +124,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
                                 <input 
                                     id="title" 
                                     type="text" 
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700 outline-none focus:bg-gray-100"
+                                    className="shadow border rounded-lg w-full py-2 px-3 text-gray-700 outline-none focus:bg-gray-100"
                                     value={title} 
                                     onChange={(e) => setTitle(e.target.value)} 
                                 />
@@ -135,7 +135,7 @@ export const Note = ({ list_id, note, updateNotes }) => {
                                 </label>
                                 <textarea 
                                     id="description" 
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700 outline-none focus:bg-gray-100"
+                                    className="shadow border rounded-lg w-full py-2 px-3 text-gray-700 outline-none focus:bg-gray-100"
                                     value={description} 
                                     onChange={(e) => setDescription(e.target.value)} 
                                     rows={6}

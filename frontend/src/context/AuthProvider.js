@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setToken('');
         localStorage.removeItem('accessToken');
+        navigate('/login');
     }
 
     const register = async (username, email, password, confPassword) => {

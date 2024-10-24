@@ -63,6 +63,7 @@ def register_user():
                     {
                         '_id': ObjectId(),
                         'title': 'To do',
+                        'color': 'red',
                         'notes': [
                             {
                                 '_id': ObjectId(),
@@ -74,6 +75,7 @@ def register_user():
                     {
                         '_id': ObjectId(),
                         'title': 'Doing',
+                        'color': 'amber',
                         'notes': [
                             {
                                 '_id': ObjectId(),
@@ -85,6 +87,7 @@ def register_user():
                     {
                         '_id': ObjectId(),
                         'title': 'Done',
+                        'color': 'emerald',
                         'notes': [
                             {
                                 '_id': ObjectId(),
@@ -127,12 +130,20 @@ def login_user():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
+@app.route('/api/board', methods=['GET'])
+@jwt_required()
+def get_boards():
+    current_user_id = get_jwt_identity()
+    user_info = db.users.find_one({'_id' : ObjectId(current_user_id)})
+    boards = json_util.dumps(user_info['boards'])
+    return Response(boards, mimetype='application/json')
 
 @app.route('/api/board', methods=['POST'])
 @jwt_required()
 def create_board():
     current_user_id = get_jwt_identity()
-    title = request.json['title']
+    data = request.json
+    title = data.get('title')
     board = {
         '_id': ObjectId(),
         'title': title,
@@ -140,6 +151,7 @@ def create_board():
             {
                 '_id': ObjectId(),
                 'title': 'To do',
+                'color': 'red',
                 'notes': [
                     {
                         '_id': ObjectId(),
@@ -151,6 +163,7 @@ def create_board():
             {
                 '_id': ObjectId(),
                 'title': 'Doing',
+                'color': 'amber',
                 'notes': [
                     {
                         '_id': ObjectId(),
@@ -162,6 +175,7 @@ def create_board():
             {
                 '_id': ObjectId(),
                 'title': 'Done',
+                'color': 'emerald',
                 'notes': [
                     {
                         '_id': ObjectId(),
@@ -181,23 +195,44 @@ def create_board():
     else:
         return {"error": "Missing fields"}, 401
     
-@app.route('/api/board', methods=['GET'])
-@jwt_required()
-def get_boards():
-    current_user_id = get_jwt_identity()
-    user_info = db.users.find_one({'_id' : ObjectId(current_user_id)})
-    boards = json_util.dumps(user_info['boards'])
-    return Response(boards, mimetype='application/json')
 
+@app.route('/api/<board_id>', methods=['PUT'])
+@jwt_required()
+def edit_boards(board_id):
+    current_user_id = get_jwt_identity()
+    data = request.json
+    title = data.get('title')
+
+    if title and current_user_id and board_id: 
+        db.users.update_one(
+            {
+                '_id': ObjectId(current_user_id), 
+                'boards._id': ObjectId(board_id)
+            },
+            {
+                '$set': {
+                    'boards.$[board].title': title
+                }
+            },
+            array_filters=[
+                {'board._id': ObjectId(board_id)},
+            ]
+            
+        )
+        return {"message": "List created successfully"}, 200
+    else:
+        return {"error": "Missing fields"}, 401
 
 @app.route('/api/<board_id>/list', methods=['POST'])
 @jwt_required()
 def create_list(board_id):
     current_user_id = get_jwt_identity()
     title = request.json['title']
+    color = request.json['color']
     list = {
         '_id' : ObjectId(),
         'title' : title,
+        'color': color,
         'notes' : [
             {
                 '_id' : ObjectId(),
@@ -228,7 +263,7 @@ def create_list(board_id):
 
 @app.route('/api/<board_id>/<list>', methods=['PUT'])
 @jwt_required()
-def edit_list(board_id):
+def edit_list(board_id, list_id):
     current_user_id = get_jwt_identity()
     title = request.json['title']
     list = {
@@ -262,6 +297,30 @@ def edit_list(board_id):
     else:
         return {"error": "Missing fields"}, 401
 
+@app.route('/api/<board_id>/<list_id>', methods=['DELETE'])
+@jwt_required()
+def delete_list(board_id, list_id):
+    current_user_id = get_jwt_identity()
+
+    if current_user_id and board_id and list_id: 
+        db.users.update_one(
+            {
+                '_id': ObjectId(current_user_id), 
+                'boards._id': ObjectId(board_id)
+            },
+            {
+                '$pull': {
+                    'boards.$[board].lists': {'_id' : ObjectId(list_id)}
+                }
+            },
+            array_filters=[
+                {'board._id': ObjectId(board_id)},
+            ]
+            
+        )
+        return {"message": "List deleted successfully"}, 200
+    else:
+        return {"error": "Missing fields"}, 401
 
 @app.route('/api/<board_id>/<list_id>/note', methods=['POST'])
 @jwt_required()
