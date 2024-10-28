@@ -2,8 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { BoardContext } from "../context/BoardContext";
 import { Note } from "./Note";
 export const List = ({list}) => {
-    const { selectedBoard, addNote, deleteNote, deleteList } = useContext(BoardContext);
+    const { selectedBoard, addNote, deleteNote, deleteList, editList } = useContext(BoardContext);
     const [editingList, setEditingList] = useState(false)
+    const [title, setTitle] = useState(list.title);
+    const [originalTitle, setOriginalTitle] = useState(list.title);
 
     const handleDrop = async (event) => {
         event.preventDefault(); 
@@ -24,6 +26,23 @@ export const List = ({list}) => {
     const handleDelete = async () => {
         await deleteList(selectedBoard._id.$oid, list._id.$oid);
     };
+
+    const handleBlur = async () => {
+        console.log(selectedBoard._id.$oid, list._id.$oid, title);
+        if (title.trim() !== '' && title != originalTitle) {
+            await editList(selectedBoard._id.$oid, list._id.$oid, title);
+        }
+        setOriginalTitle(title)
+        setEditingList(false);
+    };
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (title.trim() !== '' && title != originalTitle) {
+            await editList(selectedBoard._id.$oid, list._id.$oid, title);
+        }
+        setOriginalTitle(title)
+        setEditingList(false);
+    };
     return (
         <div 
             className="bg-gray-100 p-4 rounded-xl w-72 flex-shrink-0 h-fit max-h-full"
@@ -32,16 +51,32 @@ export const List = ({list}) => {
         >
             <div className="flex items-center justify-between text-sm font-semibold"> 
                 <div className="flex items-center space-x-2"> 
-                    <div 
-                        className={`bg-${list.color}-300 rounded-full p-1 px-2 text-gray-700 flex items-center space-x-1`}
-                        onClick={() => {
-                            setEditingList(true)
-                        }}
-                    >
-                        <span className={`h-2.5 w-2.5 bg-${list.color}-400 rounded-full`}></span>
-                        <span>{list.title}</span>
-                    </div>
-                    <span className="text-gray-400">12</span>
+                    {editingList ? (
+                            <form 
+                                className={`rounded-full text-gray-700 flex items-center space-x-1`}
+                                onSubmit={handleSubmit}
+                            >
+                                <input 
+                                    className="p-1 px-2"
+                                    onChange={(e) => setTitle(e.target.value)} 
+                                    value={title}
+                                    onBlur={handleBlur}
+                                    autoFocus
+                                    />
+                            </form>
+                        ):(
+                            <div 
+                                className={`bg-${list.color}-300 rounded-full p-1 px-2 text-gray-700 flex items-center space-x-1 cursor-pointer`}
+                                onClick={() => {
+                                    setEditingList(true)
+                                }}
+                            >
+                                <span className={`h-2.5 w-2.5 bg-${list.color}-400 rounded-full`}></span>
+                                <span>{list.title}</span>
+                            </div>
+                    )}
+
+                    <span className="text-gray-400">{list.notes.length}</span>
                 </div>
                 <button
                     onClick={handleDelete}

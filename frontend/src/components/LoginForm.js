@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { LabelUI, InputUI, ButtonUI } from "./ui";
 import { AuthContext } from "../context/AuthProvider";
+import { BoardContext } from "../context/BoardContext";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from 'react-hot-toast';
 import TaskFlowLogo from '../assets/taskflow.png';
@@ -9,6 +10,7 @@ export const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const {login} = useContext(AuthContext);
+    const {fetchBoards} = useContext(BoardContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
@@ -16,7 +18,6 @@ export const LoginForm = () => {
         
         if(email && password){
             if(await login(email, password)){
-                navigate('/boards')
                 toast.success('Welcome again')
             }else{
                 toast.error('Invalid credentials, please try again.');
@@ -30,7 +31,7 @@ export const LoginForm = () => {
           <img
             alt="TaskFlow"
             src={TaskFlowLogo}
-            className="mx-auto h-24 w-auto"
+            className="mx-auto h-12 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
             Sign in to your account

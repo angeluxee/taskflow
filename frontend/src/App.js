@@ -7,6 +7,7 @@ import { Register } from './pages/Register';
 import ProtectedRoutes from './utils/ProtectedRoutes';
 import { AuthProvider } from './context/AuthProvider'; 
 import { BoardProvider } from './context/BoardContext'; 
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               <Route path='/board' element={<Board />} /> 
             </Route>
           </Routes>
+          <Toaster/>
         </BoardProvider>
       </AuthProvider>
     </Router>

@@ -15,17 +15,7 @@ export function RegisterForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(password === confPassword){
-      const tryRegister = await register(username, email, password, confPassword); 
-      if (tryRegister) {
-        toast.success('Welcome to ecodrive');
-        // navigate("/"); 
-      } else {
-        toast.error('Invalid credentials, please try again.');
-      }
-    }else{
-      toast.error('The passwords do not match. Please try again.')
-    }
+    await register(username, email, password, confPassword); 
   };
 
   return (
@@ -35,7 +25,7 @@ export function RegisterForm() {
           <img
             alt="TaskFlow"
             src={TaskFlowLogo}
-            className="mx-auto h-24 w-auto"
+            className="mx-auto h-12 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
             Get started

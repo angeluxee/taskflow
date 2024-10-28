@@ -3,6 +3,8 @@ from flask_pymongo import PyMongo
 from flask_cors import CORS
 from bson import json_util, ObjectId
 from flask_bcrypt import Bcrypt 
+from datetime import timedelta
+
 # JWT
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
@@ -17,6 +19,7 @@ db = mongo.db
 
 # JWT
 app.config["JWT_SECRET_KEY"] = "pXbXZ8MVyxi6agydav3i2v2&9-H5y/+=&GYw&A9ZZpBW%^H=R&6zkCK%hy=U1345pMZPmY2s5DpadaslBmdlcs5K4jkg8Kb" 
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=5)
 jwt = JWTManager(app)
 
 CORS(app)
@@ -47,9 +50,14 @@ def verify_token():
 
 @app.route('/api/register', methods=['POST'])
 def register_user():
-    username = request.json['username']
-    email = request.json['email']
-    password = request.json['password']
+    data = request.json
+    email = data.get('email')
+    username = data.get('username')
+    password = data.get('password')
+
+    if db.users.find_one({'email': email}):
+        return {"error": "This email is already registered"}, 409
+
     if username and email and password:
         user = {
             'username': username,
@@ -110,8 +118,9 @@ def register_user():
 
 @app.route('/api/login', methods=['POST'])
 def login_user():
-    email = request.json['email']
-    password = request.json['password']
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
 
     if not email or not password:
         return jsonify({"error": "Missing fields"}), 400
@@ -219,16 +228,39 @@ def edit_boards(board_id):
             ]
             
         )
-        return {"message": "List created successfully"}, 200
+        return {"message": "Board edited successfully"}, 200
     else:
         return {"error": "Missing fields"}, 401
 
+@app.route('/api/<board_id>', methods=['DELETE'])
+@jwt_required()
+def delete_boards(board_id):
+    current_user_id = get_jwt_identity()
+
+    if current_user_id and board_id: 
+        db.users.update_one(
+            {
+                '_id': ObjectId(current_user_id), 
+                'boards._id': ObjectId(board_id)
+            },
+            {
+                '$pull': {
+                    'boards' : {'_id' : ObjectId(board_id)}
+                }
+            },
+            
+        )
+        return {"message": "Board deleted successfully"}, 200
+    else:
+        return {"error": "Missing fields"}, 401
+    
 @app.route('/api/<board_id>/list', methods=['POST'])
 @jwt_required()
 def create_list(board_id):
     current_user_id = get_jwt_identity()
-    title = request.json['title']
-    color = request.json['color']
+    data = request.json
+    title = data.get('title')
+    color = data.get('color')
     list = {
         '_id' : ObjectId(),
         'title' : title,
@@ -261,41 +293,37 @@ def create_list(board_id):
     else:
         return {"error": "Missing fields"}, 401
 
-@app.route('/api/<board_id>/<list>', methods=['PUT'])
+@app.route('/api/<board_id>/<list_id>', methods=['PUT'])
 @jwt_required()
 def edit_list(board_id, list_id):
     current_user_id = get_jwt_identity()
-    title = request.json['title']
-    list = {
-        '_id' : ObjectId(),
-        'title' : title,
-        'notes' : [
-            {
-                '_id' : ObjectId(),
-                'title' : 'Title',
-                'description' : 'Description'
-            }
-        ]
-    }
-    if title and current_user_id and board_id: 
-        db.users.update_one(
+    data = request.json
+    title = data.get('title')
+
+    if title and current_user_id and board_id and list_id: 
+        result = db.users.update_one(
             {
                 '_id': ObjectId(current_user_id), 
                 'boards._id': ObjectId(board_id)
             },
             {
-                '$push': {
-                    'boards.$[board].lists': list
+                '$set': {
+                    'boards.$[board].lists.$[list].title': title,
                 }
             },
             array_filters=[
                 {'board._id': ObjectId(board_id)},
+                {'list._id': ObjectId(list_id)}
             ]
-            
         )
-        return {"message": "List created successfully"}, 200
+        
+        if result.modified_count > 0:
+            return {"message": "List updated successfully"}, 200
+        else:
+            return {"error": "No document modified"}, 400
     else:
         return {"error": "Missing fields"}, 401
+
 
 @app.route('/api/<board_id>/<list_id>', methods=['DELETE'])
 @jwt_required()
