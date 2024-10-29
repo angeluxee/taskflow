@@ -24,13 +24,16 @@ export const AuthProvider = ({ children }) => {
                     password,
                 })
             });
-            const data = await response.json()
-            localStorage.setItem("accessToken", data.access_token);
-            setToken(data.access_token);
-            setUser(data.user)
-            navigate('/boards')
-            // localStorage.setItem("refreshToken", response.data.refresh);
-            return true; 
+            if(response.ok){
+                const data = await response.json()
+                localStorage.setItem("accessToken", data.access_token);
+                setToken(data.access_token);
+                setUser(data.user)
+                navigate('/boards')
+                // localStorage.setItem("refreshToken", response.data.refresh);
+                return true; 
+            }
+
         } catch (error) {
             console.error("Login failed", error);
             return false; 

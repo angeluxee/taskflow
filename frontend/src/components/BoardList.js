@@ -34,8 +34,8 @@ export const BoardList = () => {
 
     return (
         <div className="bg-boardList h-full p-6">
-            <div className="p-4 mb-10">
-                <img src={TaskFlowLogo} alt="Task Flow Logo" />
+            <div className="flex p-4 mb-10 justify-center">
+                <img className="w-auto h-8 sm:h-auto" src={TaskFlowLogo} alt="Task Flow Logo" />
             </div>
             <div>
                 <h1 className="text-lg font-bold mb-4 text-white">Your boards</h1>

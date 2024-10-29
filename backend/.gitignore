@@ -2,9 +2,12 @@
 
 # dependencies
 /venv
-
+# Environment variables
+.env
 # testing
 
 # production
 
 # misc
+
+.vercel

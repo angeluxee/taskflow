@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 from flask import Flask, request, jsonify, Response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
@@ -13,12 +15,14 @@ from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 # Mongo
-app.config['MONGO_URI'] = 'mongodb://localhost/todoappdb'
+load_dotenv()
+# app.config['MONGO_URI'] = 'mongodb://localhost/todoappdb'
+app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 mongo = PyMongo(app)
 db = mongo.db
 
 # JWT
-app.config["JWT_SECRET_KEY"] = "pXbXZ8MVyxi6agydav3i2v2&9-H5y/+=&GYw&A9ZZpBW%^H=R&6zkCK%hy=U1345pMZPmY2s5DpadaslBmdlcs5K4jkg8Kb" 
+app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=5)
 jwt = JWTManager(app)
 
@@ -48,6 +52,8 @@ def verify_token():
     else:
         return jsonify({'valid': False, 'message': 'User not found'}), 404
 
+from datetime import datetime
+
 @app.route('/api/register', methods=['POST'])
 def register_user():
     data = request.json
@@ -63,6 +69,7 @@ def register_user():
             'username': username,
             'email': email,
             'password': bcrypt.generate_password_hash(password),
+            'createdAt': datetime.utcnow(),  
             'boards': [
                 {
                 '_id': ObjectId(),
@@ -111,10 +118,11 @@ def register_user():
 
         inserted_user = db.users.insert_one(user)
         user_id = str(inserted_user.inserted_id)
-        acces_token = create_access_token(identity=user_id)
-        return {"message": "User registered successfully", 'acces_token': acces_token}
+        access_token = create_access_token(identity=user_id)
+        return {"message": "User registered successfully", 'access_token': access_token}
     else:
         return {"error": "Missing fields"}, 401
+
 
 @app.route('/api/login', methods=['POST'])
 def login_user():

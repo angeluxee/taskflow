@@ -32,7 +32,7 @@ export const Board = () => {
         }
     };
     return (
-        <div className="h-full bg-board flex flex-col"> 
+        <div className="sm:h-full bg-board flex flex-col"> 
             <div className="bg-gray-100 p-4 mb-10 flex items-center">
                 <h1 className="text-lg font-bold text-gray-700">{selectedBoard ? selectedBoard.title : 'Selecciona un tablero'}</h1>
                 <button 
@@ -45,7 +45,7 @@ export const Board = () => {
                     Log out
                 </button>
             </div>
-            <div className="flex p-4 space-x-4 overflow-x-auto overflow-y-hidden flex-grow">
+            <div className="flex flex-col items-center sm:flex-row sm:items-start p-4 space-y-4 sm:space-x-4 sm:space-y-0 overflow-x-auto overflow-y-hidden flex-grow">
                 {lists.map(list => (
                     <List key={list._id.$oid} list={list} />
                 ))}
