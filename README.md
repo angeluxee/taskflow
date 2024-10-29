@@ -24,13 +24,69 @@ Este proyecto es una aplicación estilo **Trello** simplificada, desarrollada ut
 - **MongoDB** 
 - **NPM** o **Yarn** 
 
-## API - Endpoints
-
 ## Instalación y Configuración
 
 ### 1. Clona el repositorio:
 
-   ```bash
-   git clone https://gitlab.com/devluxe/taskflow.git
-   cd taskflow
-    ```
+```bash
+git clone https://gitlab.com/devluxe/taskflow.git
+cd taskflow
+```
+
+### 2. Backend:
+
+```bash
+cd backend
+```
+- Crea un entorno virtual y activarlo:
+
+  ```bash
+  python -m venv venv
+  source venv/bin/activate # Para Linux o Mac
+  venv\Scripts\activate # Para Windows
+  ```
+
+- Instala dependencias:
+
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+- Crea un archivo `.env` en el directorio `backend` y configura las variables necesarias (URL de la base de datos MongoDB y la clave secreta para JWT):
+
+  ```bash
+  MONGO_URI=mongodb://localhost/taskflow  
+  JWT_SECRET_KEY=tu_clave_secreta
+  FRONT_URL=http://localhost:3000 
+  ```
+
+- Ejecuta el servidor Flask:
+
+  ```bash
+  python src/app.py
+  ```
+
+### 3. Frontend:
+
+```bash
+cd frontend
+```
+
+- Instala dependencias:
+
+  ```bash
+  npm install
+  ```
+
+- Crea o edita el archivo '.env' en el directorio '/src/' y definir la url del backend:
+
+  ```bash
+  REACT_APP_API=http://localhost:5000
+  ```
+
+- Ejecuta el servidor React:
+
+  ```bash
+  npm start
+  ```
+   

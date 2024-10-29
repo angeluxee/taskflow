@@ -16,7 +16,6 @@ from flask_jwt_extended import JWTManager
 app = Flask(__name__)
 # Mongo
 load_dotenv()
-# app.config['MONGO_URI'] = 'mongodb://localhost/todoappdb'
 app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 mongo = PyMongo(app)
 db = mongo.db
@@ -26,7 +25,8 @@ app.config["JWT_SECRET_KEY"] = os.getenv('JWT_SECRET_KEY')
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=5)
 jwt = JWTManager(app)
 
-CORS(app)
+# CORS(app)
+CORS(app, origins=[os.getenv('FRONT_URL')])
 bcrypt = Bcrypt(app)
 
 # Utils
