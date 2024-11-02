@@ -1,7 +1,6 @@
 import { LabelUI, InputUI, ButtonUI } from "./ui";
 import React, { useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
-import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthProvider';
 import TaskFlowLogo from '../assets/taskflow.png';
 

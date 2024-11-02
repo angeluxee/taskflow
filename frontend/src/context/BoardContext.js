@@ -85,7 +85,7 @@ export const BoardProvider = ({ children }) => {
 
     const addList = async (board_id, title, color) => {
         try {
-            if(board_id, title){
+            if(board_id && title){
                 const response = await fetch(`${BACKEND}/api/${board_id}/list`, {
                     method: 'POST',
                     headers: {
@@ -139,7 +139,7 @@ export const BoardProvider = ({ children }) => {
 
     const deleteList = async (board_id, list_id) => {
         try {
-            if(board_id, list_id){
+            if(board_id && list_id){
                 const response = await fetch(`${BACKEND}/api/${board_id}/${list_id}`, {
                     method: 'DELETE',
                     headers: {

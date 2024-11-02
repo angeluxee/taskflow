@@ -7,7 +7,6 @@ export const Note = ({ list_id, note, updateNotes }) => {
     const [edit, setEdit] = useState(false); 
     const [title, setTitle] = useState(note.title); 
     const [description, setDescription] = useState(note.description); 
-    const BACKEND = process.env.REACT_APP_API;
     const [originalTitle, setOriginalTitle] = useState(note.title);
     const [originalDescription, setOriginalDescription] = useState(note.description);
 

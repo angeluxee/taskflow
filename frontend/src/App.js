@@ -1,6 +1,5 @@
 import './index.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Board } from './pages/Board';
 import { BoardsPage } from './pages/BoardsPage';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -21,7 +20,6 @@ function App() {
 
             <Route element={<ProtectedRoutes />}>
               <Route path='/boards' element={<BoardsPage />} />
-              <Route path='/board' element={<Board />} /> 
             </Route>
           </Routes>
           <Toaster/>

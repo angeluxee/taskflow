@@ -1,6 +1,5 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useState, useEffect, useContext } from "react";
-import axios from 'axios';
+import { useContext } from "react";
 import { AuthContext } from '../context/AuthProvider';
 
 const ProtectedRoutes = () => {
