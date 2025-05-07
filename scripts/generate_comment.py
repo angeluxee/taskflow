@@ -1,30 +1,39 @@
-import subprocess
 import os
 import openai
 import requests
+import json
+import subprocess
 
+# Get environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
 github_token = os.getenv("GITHUB_TOKEN")
 repo = os.getenv("GITHUB_REPOSITORY")
 pr_number = os.getenv("PR_NUMBER")
 
-# Fetch all branches to ensure origin/main is available
-subprocess.check_call(["git", "fetch", "--all"])
+def get_diff_from_github_api():
+    """Fetch the PR diff directly from GitHub's API."""
+    print(f"Fetching diff from GitHub API for PR #{pr_number} in {repo}")
+    
+    headers = {
+        "Accept": "application/vnd.github.v3.diff",
+        "Authorization": f"token {github_token}"
+    }
+    
+    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        print(f"Error fetching PR diff: {response.status_code}")
+        print(response.text)
+        # Fallback to an empty diff if API fails
+        return "No diff available"
+    
+    return response.text
 
-def get_diff():
-    try:
-        # Try to get the diff with origin/main
-        return subprocess.check_output(["git", "diff", "origin/main...HEAD"], text=True)
-    except subprocess.CalledProcessError:
-        try:
-            # Fallback to origin/master if origin/main is not available
-            return subprocess.check_output(["git", "diff", "origin/master...HEAD"], text=True)
-        except subprocess.CalledProcessError:
-            # Fallback to local diff if no remote branch is available
-            return subprocess.check_output(["git", "diff", "HEAD~1..HEAD"], text=True)
+# Get the diff using GitHub API
+diff = get_diff_from_github_api()
 
-diff = get_diff()
-
+# Generate comment using OpenAI
 response = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[
@@ -35,8 +44,18 @@ response = openai.ChatCompletion.create(
 
 comment = response["choices"][0]["message"]["content"]
 
+# Add informative header to the comment
+comment = f"## AI Review Bot\n\n{comment}"
+
 # Post the comment to the PR
 url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
 headers = {"Authorization": f"token {github_token}"}
 payload = {"body": comment}
-requests.post(url, headers=headers, json=payload)
+print(f"Posting comment to PR #{pr_number}")
+comment_response = requests.post(url, headers=headers, json=payload)
+
+if comment_response.status_code == 201:
+    print("Comment posted successfully!")
+else:
+    print(f"Error posting comment: {comment_response.status_code}")
+    print(comment_response.text)
