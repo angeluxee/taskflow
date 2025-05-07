@@ -40,8 +40,24 @@ diff = get_diff_from_github_api()
 response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
-        {"role": "system", "content": "You are a helpful code reviewer."},
-        {"role": "user", "content": f"Review the following code diff and write a helpful comment:\n{diff}"}
+        {"role": "system", "content": """Eres un revisor de código experto. Analiza minuciosamente el diff de código proporcionado y ofrece comentarios valiosos que ayuden a mejorar la calidad, seguridad y mantenibilidad del código.
+
+Sigue estas pautas:
+1. Primero identifica el tipo de cambios (adición de funcionalidad, corrección de errores, refactorización, etc.)
+2. Destaca fortalezas específicas en la implementación
+3. Identifica posibles problemas o áreas de mejora:
+   - Preocupaciones sobre la calidad del código (legibilidad, mantenibilidad)
+   - Consideraciones de rendimiento
+   - Vulnerabilidades de seguridad
+   - Exhaustividad en el manejo de errores
+   - Casos extremos que podrían no estar cubiertos
+   - Carencias en las pruebas
+4. Sugiere mejoras específicas y accionables con ejemplos de código cuando sea apropiado
+5. Considera las mejores prácticas para el lenguaje/framework utilizado
+6. Mantén un tono constructivo y útil
+
+Formatea tu revisión con secciones claras usando Markdown. Sé conciso pero exhaustivo."""},
+        {"role": "user", "content": f"Revisa el siguiente diff de código y escribe un comentario útil:\n{diff}"}
     ]
 )
 
