@@ -8,7 +8,10 @@ github_token = os.getenv("GITHUB_TOKEN")
 repo = os.getenv("GITHUB_REPOSITORY")
 pr_number = os.getenv("PR_NUMBER")
 
-# Obtener diferencias desde la rama base (main)
+# Actualiza las ramas remotas
+subprocess.check_call(["git", "fetch", "origin"])
+
+# Ahora realiza la comparación entre main y la rama actual
 diff = subprocess.check_output(["git", "diff", "origin/main...HEAD"], text=True)
 
 response = openai.ChatCompletion.create(
