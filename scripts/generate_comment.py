@@ -1,14 +1,17 @@
 import os
-import openai
 import requests
 import json
 import subprocess
+from openai import OpenAI
 
 # Get environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
 github_token = os.getenv("GITHUB_TOKEN")
 repo = os.getenv("GITHUB_REPOSITORY")
 pr_number = os.getenv("PR_NUMBER")
+
+# Initialize the OpenAI client with the API key
+client = OpenAI(api_key=openai_api_key)
 
 def get_diff_from_github_api():
     """Fetch the PR diff directly from GitHub's API."""
@@ -33,8 +36,8 @@ def get_diff_from_github_api():
 # Get the diff using GitHub API
 diff = get_diff_from_github_api()
 
-# Generate comment using OpenAI
-response = openai.ChatCompletion.create(
+# Generate comment using OpenAI's new API format
+response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "You are a helpful code reviewer."},
@@ -42,7 +45,7 @@ response = openai.ChatCompletion.create(
     ]
 )
 
-comment = response["choices"][0]["message"]["content"]
+comment = response.choices[0].message.content
 
 # Add informative header to the comment
 comment = f"## AI Review Bot\n\n{comment}"
